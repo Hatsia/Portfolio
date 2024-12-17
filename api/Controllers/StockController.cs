@@ -5,6 +5,7 @@ using api.DTOs.Stock;
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using api.Interfaces;
+using api.Helpers;
 
 namespace api.Controllers
 {
@@ -22,9 +23,12 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] QueryObject query)
         {
-            var stocks = await _stockRepository.GetAllAsync();
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var stocks = await _stockRepository.GetAllAsync(query);
             var stockDto = stocks.Select(x => x.ToStockDto());
 
             return Ok(stockDto);
@@ -33,6 +37,9 @@ namespace api.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var stock = await _stockRepository.GetByIdAsync(id);
 
             if (stock == null)
@@ -46,6 +53,9 @@ namespace api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateStockRequestDto stockDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var stockModel = stockDto.ToStockFromCreateRequestDto();
 
             await _stockRepository.CreateAsync(stockModel);
@@ -57,6 +67,9 @@ namespace api.Controllers
         [Route("{id:int}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateStockRequestDto updateDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var stockModel = await _stockRepository.UpdateAsync(id, updateDto.ToStockFromUpdateRequestDto());
 
             if (stockModel == null)
@@ -71,6 +84,9 @@ namespace api.Controllers
         [Route("{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var stockModel = await _stockRepository.DeleteAsync(id);
 
             if(stockModel == null)
